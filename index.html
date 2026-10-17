@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VLSM Planner | Ejaz Ahemad</title>
+<meta name="description" content="Split one IPv4 network into right-sized subnets. Enter a parent block and the hosts each department needs.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&family=Archivo:wdth,wght@62..125,400..900&display=swap">
+<style>
+:root { --bg:#F2F5F3; --surface:#E7EDEA; --ink:#13201B; --muted:#4F625A; --line:#C6D3CC; --accent:#1D6B58; --accent-soft:#D3E8E0; --on-accent:#F2F5F3; --bad:#B42318;
+  --display:"Archivo","Helvetica Neue",Arial,sans-serif; --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif; --mono:"IBM Plex Mono",ui-monospace,Menlo,monospace; }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#0E1613; --surface:#16211D; --ink:#E4EDE9; --muted:#9BB0A7; --line:#2A3A34; --accent:#5CC3A4; --accent-soft:#17332B; --on-accent:#0E1613; --bad:#F97066; color-scheme:dark; } }
+:root[data-theme="dark"]{ --bg:#0E1613; --surface:#16211D; --ink:#E4EDE9; --muted:#9BB0A7; --line:#2A3A34; --accent:#5CC3A4; --accent-soft:#17332B; --on-accent:#0E1613; --bad:#F97066; color-scheme:dark; }
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--body);padding:20px max(16px,env(safe-area-inset-right,0px)) 48px max(16px,env(safe-area-inset-left,0px))}
+.wrap{max-width:980px;margin:0 auto}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,input:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.top{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid var(--line);font:500 .8rem var(--mono);text-transform:uppercase;letter-spacing:.08em}
+.top a{color:var(--muted);text-decoration:none}
+h1{font-family:var(--display);font-stretch:118%;font-weight:800;font-size:clamp(1.9rem,6vw,3rem);line-height:1.05;margin:34px 0 10px;letter-spacing:-.01em}
+.lead{color:var(--muted);max-width:44em;margin:0 0 26px}
+.panel{border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:18px}
+label{display:block;font:500 .75rem var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:6px}
+input{font:400 1rem var(--mono);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:4px;padding:9px 10px;width:100%}
+.row{display:grid;grid-template-columns:minmax(0,1fr) 8rem 2.6rem;gap:10px;margin-bottom:10px;align-items:end}
+.btn{font:500 .95rem var(--body);padding:10px 16px;border-radius:4px;border:1.5px solid var(--accent);background:var(--accent);color:var(--on-accent);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn.x{padding:9px 0;width:2.6rem;border-color:var(--line);color:var(--muted);background:transparent}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.msg{margin:16px 0 0;font:500 .9rem var(--mono);color:var(--bad);min-height:1.4em}
+.sum{display:flex;flex-wrap:wrap;gap:8px 28px;margin:26px 0 12px;font:400 .85rem var(--mono);color:var(--muted)}
+.sum b{color:var(--ink);font-weight:500}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:6px}
+table{border-collapse:collapse;width:100%;min-width:760px;font:400 .86rem var(--mono)}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--line);white-space:nowrap}
+th{font-weight:500;text-transform:uppercase;letter-spacing:.06em;font-size:.72rem;color:var(--muted);background:var(--surface)}
+tr:last-child td{border-bottom:0}
+td.n{font-family:var(--body);font-weight:600}
+.bar{height:10px;background:var(--surface);border:1px solid var(--line);border-radius:3px;overflow:hidden;margin-top:6px;display:flex}
+.bar i{display:block;height:100%;background:var(--accent);border-right:1px solid var(--bg)}
+.note{color:var(--muted);font-size:.85rem;margin-top:30px;border-top:1px solid var(--line);padding-top:14px}
+@media (max-width:560px){.row{grid-template-columns:minmax(0,1fr) 6rem 2.6rem}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><a href="https://ajjuahmad.github.io/#projects">&larr; Portfolio</a><span>Sample project &middot; Networking</span></div>
+  <h1>VLSM Planner</h1>
+  <p class="lead">Give it one parent network and the hosts each department needs. It hands back right-sized subnets, largest first, each aligned to its block boundary.</p>
+
+  <div class="panel">
+    <label for="parent">Parent network (CIDR)</label>
+    <input id="parent" value="192.168.10.0/24" spellcheck="false" autocomplete="off" style="max-width:20rem;margin-bottom:18px">
+    <div id="rows"></div>
+    <div class="actions">
+      <button class="btn ghost" id="add" type="button">Add subnet</button>
+      <button class="btn" id="go" type="button">Plan subnets</button>
+    </div>
+    <p class="msg" id="msg" role="alert"></p>
+  </div>
+
+  <div id="out" hidden>
+    <div class="sum" id="sum"></div>
+    <div class="tw"><table>
+      <thead><tr><th>Name</th><th>Hosts</th><th>Network</th><th>Mask</th><th>First host</th><th>Last host</th><th>Broadcast</th><th>Usable</th></tr></thead>
+      <tbody id="tbody"></tbody>
+    </table></div>
+    <div class="bar" id="bar" aria-hidden="true"></div>
+  </div>
+
+  <p class="note">Rule used: a subnet needs hosts + 2 addresses (network and broadcast), rounded up to the next power of two, with a minimum block of 4 (/30). Sample project by Ejaz Ahemad, built with AI assistance.</p>
+</div>
+<script>
+(function(){
+  function ip2n(s){var p=s.trim().split(".");if(p.length!==4)return null;var n=0;for(var i=0;i<4;i++){if(!/^\d{1,3}$/.test(p[i]))return null;var v=+p[i];if(v>255)return null;n=n*256+v}return n}
+  function n2ip(n){return [Math.floor(n/16777216)%256,Math.floor(n/65536)%256,Math.floor(n/256)%256,n%256].join(".")}
+  function mask(prefix){return n2ip(prefix===0?0:Math.pow(2,32)-Math.pow(2,32-prefix))}
+  function plan(parent,reqs){
+    var m=/^(\d+\.\d+\.\d+\.\d+)\/(\d{1,2})$/.exec(parent.trim());
+    if(!m)return{error:"Enter the parent network like 192.168.10.0/24."};
+    var ip=ip2n(m[1]),prefix=+m[2];
+    if(ip===null||prefix>30)return{error:"Parent must be a valid IPv4 address with a prefix of /30 or shorter."};
+    var size=Math.pow(2,32-prefix),base=Math.floor(ip/size)*size,end=base+size,cur=base,out=[];
+    var list=reqs.map(function(r,i){return{name:r.name||("Subnet "+(i+1)),hosts:r.hosts}}).sort(function(a,b){return b.hosts-a.hosts});
+    for(var i=0;i<list.length;i++){
+      var h=list[i].hosts,bits=Math.max(2,Math.ceil(Math.log2(h+2))),blk=Math.pow(2,bits);
+      cur=Math.ceil(cur/blk)*blk;
+      if(cur+blk>end)return{error:"Out of space: \""+list[i].name+"\" needs a /"+(32-bits)+" block but the parent has no room left."};
+      out.push({name:list[i].name,hosts:h,net:cur,pre:32-bits,blk:blk});
+      cur+=blk;
+    }
+    return{base:base,prefix:prefix,size:size,rows:out,used:cur-base};
+  }
+  window.__vlsm={plan:plan,n2ip:n2ip};
+  var rowsEl=document.getElementById("rows");
+  function addRow(name,hosts){
+    var d=document.createElement("div");d.className="row";
+    d.innerHTML='<div><label>Name</label><input class="nm" value="'+name+'" autocomplete="off"></div><div><label>Hosts</label><input class="hs" type="number" min="1" max="1000000" value="'+hosts+'"></div><button class="btn x" type="button" aria-label="Remove subnet">&times;</button>';
+    d.querySelector(".x").addEventListener("click",function(){d.remove()});
+    rowsEl.appendChild(d);
+  }
+  [["Sales",60],["Engineering",28],["Support",12],["Router link",2]].forEach(function(r){addRow(r[0],r[1])});
+  document.getElementById("add").addEventListener("click",function(){addRow("",10)});
+  function run(){
+    var msg=document.getElementById("msg");msg.textContent="";
+    var reqs=[].slice.call(rowsEl.children).map(function(d){return{name:d.querySelector(".nm").value.trim(),hosts:parseInt(d.querySelector(".hs").value,10)}});
+    if(!reqs.length){msg.textContent="Add at least one subnet.";return}
+    if(reqs.some(function(r){return !(r.hosts>=1)})){msg.textContent="Every subnet needs a host count of 1 or more.";return}
+    var res=plan(document.getElementById("parent").value,reqs);
+    if(res.error){document.getElementById("out").hidden=true;msg.textContent=res.error;return}
+    var tb=document.getElementById("tbody");tb.innerHTML="";
+    res.rows.forEach(function(r){
+      var tr=document.createElement("tr");
+      var cells=[r.name,r.hosts,n2ip(r.net)+"/"+r.pre,mask(r.pre),n2ip(r.net+1),n2ip(r.net+r.blk-2),n2ip(r.net+r.blk-1),r.blk-2];
+      cells.forEach(function(c,i){var td=document.createElement("td");if(i===0)td.className="n";td.textContent=c;tr.appendChild(td)});
+      tb.appendChild(tr);
+    });
+    var free=res.size-res.used;
+    document.getElementById("sum").innerHTML='<span>Parent <b>'+n2ip(res.base)+'/'+res.prefix+'</b></span><span>Addresses <b>'+res.size+'</b></span><span>Allocated <b>'+res.used+'</b></span><span>Free <b>'+free+'</b></span>';
+    var bar=document.getElementById("bar");bar.innerHTML="";
+    res.rows.forEach(function(r){var i=document.createElement("i");i.style.width=(r.blk/res.size*100)+"%";bar.appendChild(i)});
+    document.getElementById("out").hidden=false;
+  }
+  document.getElementById("go").addEventListener("click",run);
+  run();
+})();
+</script>
+</body>
+</html>
